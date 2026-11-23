@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Heart, Music, Sparkles, Calendar, Volume2, SkipForward } from 'lucide-react';
+import { Heart, Music, Sparkles, Calendar, Volume2, SkipForward, Mail } from 'lucide-react';
 
 import panpanAvatar from '@/assets/avatar/panpan.jpg';
 import zmhAvatar from '@/assets/avatar/zmh.jpg';
@@ -19,7 +19,7 @@ const getDefaultDaysTogether = () => {
   return Math.max(1, Math.floor(diff / (1000 * 60 * 60 * 24)));
 };
 
-export default function Navbar({ daysTogether }) {
+export default function Navbar({ daysTogether, onOpenEnvelopes }) {
   const displayDaysTogether = daysTogether ?? getDefaultDaysTogether();
   const [isPlayingMusic, setIsPlayingMusic] = useState(false);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
@@ -133,9 +133,22 @@ export default function Navbar({ daysTogether }) {
           </div>
         </div>
 
-        {/* Action Widgets: Music Player, Date/Days Counter, Add Memory */}
-        <div className="flex items-center flex-nowrap justify-between sm:justify-end gap-2 sm:gap-3.5 w-full md:w-auto">
+        {/* Action Widgets: Envelopes Button, Music Player, Date/Days Counter */}
+        <div className="flex items-center flex-nowrap justify-between sm:justify-end gap-2 sm:gap-3 w-full md:w-auto">
           
+          {/* 15 Love Envelopes Button */}
+          {onOpenEnvelopes && (
+            <button
+              type="button"
+              onClick={onOpenEnvelopes}
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white text-xs font-bold shadow-sm shadow-pink-500/30 transition-all cursor-pointer shrink-0 whitespace-nowrap active:scale-95"
+              title="Open 15 Daily Love Envelopes (Nov 23 – Dec 7)"
+            >
+              <Mail className="w-3.5 h-3.5 shrink-0" />
+              <span>15 Envelopes 💌</span>
+            </button>
+          )}
+
           {/* Days Together Pill */}
           <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-xl bg-pink-100/90 border border-pink-300/70 text-xs shadow-sm shrink-0 whitespace-nowrap">
             <div className="p-1 rounded-lg bg-pink-500/20 text-pink-600">

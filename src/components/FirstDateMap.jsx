@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { MapPin, Navigation, Sparkles, Maximize2 } from 'lucide-react';
+import { MapPin, Navigation, Sparkles, Maximize2, Film } from 'lucide-react';
 import ImageExpandModal from './ImageExpandModal';
 
 // Fix for Leaflet's default marker asset URLs in React / bundler environments (Vite / Webpack)
@@ -17,12 +17,11 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
-// --- ASSET CONFIGURATION (Update your first date photo directly here in code) ---
-import defaultFirstDateImg from '@/assets/date.jpeg';
-const FIRST_DATE_IMAGE_SRC = defaultFirstDateImg;
+// --- FIRST DATE MEDIA ASSETS ---
+import { FIRST_DATE_MEDIA } from '../utils/firstDateMedia';
 
-// Thamine, Insein Township, Yangon, Myanmar coordinates (First Date Location)
-const FIRST_DATE_COORDS = [16.865138701282937, 96.12054777131578];
+// Just Vibe coordinates (First Date Location)
+const FIRST_DATE_COORDS = [16.861182192085323, 96.12077149506666];
 const ZOOM_LEVEL = 15;
 
 // Custom Romantic Heart Marker Icon
@@ -94,11 +93,15 @@ export default function FirstDateMap({
   height = '480px',
   className = '',
   autoOpenPopup = true,
-  imageSrc = FIRST_DATE_IMAGE_SRC,
+  media = FIRST_DATE_MEDIA,
 }) {
   const markerRef = useRef(null);
   const [recenterCount, setRecenterCount] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const currentMedia = media[activeIndex] || media[0];
+  const isVideo = currentMedia?.type === 'video';
 
   // Automatically open the styled popup once the marker mounts
   useEffect(() => {
@@ -132,7 +135,7 @@ export default function FirstDateMap({
         </span>
         <span className="w-1.5 h-1.5 rounded-full bg-pink-500 animate-pulse" />
         <span className="text-[11px] text-pink-300 font-medium hidden sm:inline">
-          KOSAN Bar Thamine Branch • 1 Nov 2026, 3:30 PM
+          Just Vibe • 31 Oct 2026, 3:30 PM
         </span>
       </div>
 
@@ -171,37 +174,85 @@ export default function FirstDateMap({
           position={FIRST_DATE_COORDS}
           icon={firstDateHeartIcon}
         >
-          {/* Custom Styled Popup with Image */}
+          {/* Custom Styled Popup with Gallery */}
           <Popup
             className="first-date-romantic-popup"
             closeButton={true}
             autoPan={true}
             offset={[0, -20]}
           >
-            <div className="p-1.5 sm:p-2 text-center min-w-[210px] max-w-[240px] select-none">
+            <div className="p-1.5 sm:p-2 text-center min-w-[220px] max-w-[250px] select-none">
               
-              {/* Romantic Picture inside Popup */}
+              {/* Romantic Picture / Video inside Popup */}
               <div
                 onClick={() => setIsExpanded(true)}
-                className="group relative aspect-video w-full overflow-hidden rounded-xl bg-pink-100 mb-2 border border-pink-200/90 shadow-sm cursor-pointer hover:border-pink-400 transition-all"
-                title="Click to expand photo"
+                className="group relative aspect-video w-full overflow-hidden rounded-xl bg-slate-950 mb-2 border border-pink-200/90 shadow-sm cursor-pointer hover:border-pink-400 transition-all"
+                title="Click to expand memory"
               >
-                <img
-                  src={imageSrc}
-                  alt="Our First Date Memory"
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                />
+                {isVideo ? (
+                  <video
+                    key={currentMedia.src}
+                    src={currentMedia.src}
+                    muted
+                    loop
+                    autoPlay
+                    playsInline
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <img
+                    src={currentMedia.src}
+                    alt={currentMedia.label || 'Our First Date Memory'}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                )}
 
                 {/* Hover overlay hint */}
                 <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-1 text-white text-[10px] font-semibold backdrop-blur-[1px]">
                   <Maximize2 className="w-3.5 h-3.5 text-pink-300" />
-                  <span>Expand</span>
+                  <span>{isVideo ? 'Play with Sound' : 'Expand'}</span>
                 </div>
 
                 <div className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-full bg-white/90 backdrop-blur-sm border border-pink-200 text-[9px] font-bold text-pink-600 flex items-center gap-1 shadow-xs pointer-events-none">
                   <Sparkles className="w-2.5 h-2.5 text-pink-500" />
-                  <span>Special Moment</span>
+                  <span>{currentMedia.shortLabel || 'Special Moment'}</span>
                 </div>
+              </div>
+
+              {/* Mini Thumbnail Switcher inside Popup */}
+              <div className="flex items-center justify-center gap-1.5 mb-2">
+                {media.map((item, idx) => {
+                  const itemIsVideo = item.type === 'video';
+                  const isSelected = idx === activeIndex;
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveIndex(idx);
+                      }}
+                      className={`w-9 h-9 rounded-lg overflow-hidden border-2 transition-all cursor-pointer flex items-center justify-center ${
+                        isSelected
+                          ? 'border-pink-500 scale-105 shadow-xs shadow-pink-500/40'
+                          : 'border-pink-200 opacity-70 hover:opacity-100'
+                      }`}
+                      title={item.label}
+                    >
+                      {itemIsVideo ? (
+                        <div className="w-full h-full bg-slate-900 flex items-center justify-center text-pink-400">
+                          <Film className="w-3.5 h-3.5" />
+                        </div>
+                      ) : (
+                        <img
+                          src={item.src}
+                          alt={item.shortLabel}
+                          className="w-full h-full object-cover"
+                        />
+                      )}
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Title: Our First Date 💖 */}
@@ -209,21 +260,21 @@ export default function FirstDateMap({
                 Our First Date <span className="text-pink-500">💖</span>
               </h3>
 
-              {/* Subtitle: KOSAN Bar Thamine Branch */}
+              {/* Subtitle: Just Vibe */}
               <p className="text-xs font-bold text-pink-600 mt-0.5 flex items-center justify-center gap-1">
                 <MapPin className="w-3 h-3 text-pink-500 inline shrink-0" />
-                <span className="truncate">KOSAN Bar Thamine Branch</span>
+                <span className="truncate">Just Vibe</span>
               </p>
 
-              {/* Date & Time: 1 Nov 2026 3:30PM */}
+              {/* Date & Time: 31 Oct 2026 3:30PM */}
               <div className="mt-1 flex items-center justify-center gap-1 text-[11px] font-semibold text-slate-700 bg-pink-50/80 rounded-md py-0.5 px-2 border border-pink-200/60">
-                <span>🗓️ 1 Nov 2026 • 3:30 PM</span>
+                <span>🗓️ 31 Oct 2026 • 3:30 PM</span>
               </div>
 
               {/* Caption: Where our story began... */}
               <div className="mt-2 pt-1.5 border-t border-pink-100">
                 <p className="text-xs italic text-slate-600 font-medium">
-                  "Where our story began... KOSAN Bar"
+                  "Where our story began... Just Vibe"
                 </p>
               </div>
 
@@ -235,14 +286,17 @@ export default function FirstDateMap({
       {/* Subtle bottom gradient glow */}
       <div className="absolute bottom-0 inset-x-0 h-10 bg-gradient-to-t from-slate-900/40 to-transparent pointer-events-none z-[400]" />
 
-      {/* Expanded Image Modal */}
+      {/* Expanded Media Modal */}
       <ImageExpandModal
         isOpen={isExpanded}
         onClose={() => setIsExpanded(false)}
-        src={imageSrc}
+        src={currentMedia?.src}
+        type={currentMedia?.type}
+        media={media}
+        initialIndex={activeIndex}
         alt="Our First Date Memory"
         title="Our First Date 💖"
-        caption="1 Nov 2026 • 3:30 PM — KOSAN Bar Thamine Branch"
+        caption="31 Oct 2026 • 3:30 PM — Just Vibe"
       />
     </div>
   );

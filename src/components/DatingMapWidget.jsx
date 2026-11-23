@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { MapPin, Heart, Calendar, Sparkles, Navigation, Maximize2 } from 'lucide-react';
-import firstDateImg from '@/assets/date.jpeg';
+import { MapPin, Heart, Calendar, Sparkles, Navigation, Maximize2, Film } from 'lucide-react';
+import { FIRST_DATE_MEDIA } from '../utils/firstDateMedia';
 
 // Fix for Leaflet's default marker asset URLs in React / bundler environments
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
@@ -63,14 +63,15 @@ function MapController({ selectedCoords }) {
 const INITIAL_DATING_SPOTS = [
   {
     id: 1,
-    name: 'Our First Date - KOSAN Bar Thamine Branch',
+    name: 'Our First Date - Just Vibe',
     category: 'First Date',
-    date: '1 Nov 2026 • 3:30 PM',
-    location: 'KOSAN Bar Thamine Branch',
-    lat: 16.865138701282937,
-    lng: 96.12054777131578,
-    imageUrl: firstDateImg,
-    story: 'Where our story began... KOSAN Bar Thamine Branch on 1 Nov 2026 at 3:30 PM. Sweet smiles, nervous butterflies, and our very first romantic memory together.',
+    date: '31 Oct 2026 • 3:30 PM',
+    location: 'Just Vibe',
+    lat: 16.861182192085323,
+    lng: 96.12077149506666,
+    imageUrl: FIRST_DATE_MEDIA[0].src,
+    media: FIRST_DATE_MEDIA,
+    story: 'Where our story began... Just Vibe on 31 Oct 2026 at 3:30 PM. Sweet smiles, tequila shots, nervous butterflies, and our very first romantic memory together.',
     tag: 'First Date 💖',
   },
 ];
@@ -79,6 +80,7 @@ export default function DatingMapWidget({ onSelectMemory }) {
   const [spots] = useState(INITIAL_DATING_SPOTS);
   const [selectedSpot, setSelectedSpot] = useState(spots[0]);
   const [activeCategory, setActiveCategory] = useState('All');
+  const [activeMediaIndex, setActiveMediaIndex] = useState(0);
 
   const categories = ['All', 'First Date', 'Cafe & Food', 'Sunset Stroll', 'Special Trip'];
 
@@ -89,7 +91,18 @@ export default function DatingMapWidget({ onSelectMemory }) {
 
   const handleSpotClick = (spot) => {
     setSelectedSpot(spot);
+    setActiveMediaIndex(0);
   };
+
+  const spotMedia =
+    Array.isArray(selectedSpot?.media) && selectedSpot.media.length > 0
+      ? selectedSpot.media
+      : selectedSpot?.imageUrl
+        ? [{ type: 'image', src: selectedSpot.imageUrl, label: selectedSpot.name }]
+        : [];
+
+  const currentMedia = spotMedia[activeMediaIndex] || spotMedia[0];
+  const isCurrentVideo = currentMedia?.type === 'video';
 
   return (
     <section className="rounded-3xl bg-white p-5 sm:p-7 border border-pink-200/90 shadow-xl shadow-pink-200/40 relative overflow-hidden transition-all">
@@ -147,7 +160,7 @@ export default function DatingMapWidget({ onSelectMemory }) {
         {/* Leaflet Map (lg:col-span-8) */}
         <div className="lg:col-span-8 rounded-2xl overflow-hidden border-2 border-pink-200/90 shadow-inner relative min-h-[380px] sm:min-h-[440px]">
           <MapContainer
-            center={[selectedSpot ? selectedSpot.lat : 16.8651, selectedSpot ? selectedSpot.lng : 96.1205]}
+            center={[selectedSpot ? selectedSpot.lat : 16.861182192085323, selectedSpot ? selectedSpot.lng : 96.12077149506666]}
             zoom={15}
             scrollWheelZoom={false}
             className="w-full h-full min-h-[380px] sm:min-h-[440px] z-10"
@@ -222,10 +235,10 @@ export default function DatingMapWidget({ onSelectMemory }) {
           {selectedSpot && (
             <div className="rounded-2xl bg-pink-50/80 p-4 border border-pink-200/90 shadow-sm flex flex-col justify-between flex-1">
               <div>
-                {/* Photo Thumbnail */}
+                {/* Photo / Video Preview */}
                 <div
                   onClick={() => {
-                    if (onSelectMemory) {
+                    if (!isCurrentVideo && onSelectMemory) {
                       onSelectMemory({
                         id: selectedSpot.id,
                         title: selectedSpot.name,
@@ -233,32 +246,81 @@ export default function DatingMapWidget({ onSelectMemory }) {
                         location: selectedSpot.location,
                         tag: selectedSpot.tag,
                         imageUrl: selectedSpot.imageUrl,
+                        media: selectedSpot.media,
+                        initialMediaIndex: activeMediaIndex,
                         description: selectedSpot.story,
                         quote: 'Every date with you is an unforgettable chapter in our love story.',
                         likes: 99,
                       });
                     }
                   }}
-                  className="group relative aspect-video w-full overflow-hidden rounded-xl bg-pink-100 mb-3 ring-1 ring-pink-200 cursor-pointer hover:ring-pink-400 transition-all shadow-xs"
+                  className="group relative aspect-video w-full overflow-hidden rounded-xl bg-slate-950 mb-2.5 ring-1 ring-pink-200 cursor-pointer hover:ring-pink-400 transition-all shadow-xs"
                   title="Click to expand memory"
                 >
-                  <img
-                    src={selectedSpot.imageUrl}
-                    alt={selectedSpot.name}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
+                  {isCurrentVideo ? (
+                    <video
+                      key={currentMedia.src}
+                      src={currentMedia.src}
+                      controls
+                      playsInline
+                      className="w-full h-full object-contain bg-black"
+                    />
+                  ) : (
+                    <>
+                      <img
+                        src={currentMedia?.src || selectedSpot.imageUrl}
+                        alt={currentMedia?.label || selectedSpot.name}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
 
-                  {/* Hover expand overlay */}
-                  <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-1 text-white text-xs font-semibold backdrop-blur-[1px]">
-                    <Maximize2 className="w-4 h-4 text-pink-300" />
-                    <span>Click to expand</span>
-                  </div>
+                      {/* Hover expand overlay */}
+                      <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-1 text-white text-xs font-semibold backdrop-blur-[1px]">
+                        <Maximize2 className="w-4 h-4 text-pink-300" />
+                        <span>Click to expand</span>
+                      </div>
+                    </>
+                  )}
 
                   <div className="absolute top-2 left-2 px-2.5 py-0.5 rounded-full bg-white/90 backdrop-blur-sm border border-pink-300 text-[10px] font-bold text-pink-600 flex items-center gap-1 shadow-sm pointer-events-none">
                     <Sparkles className="w-3 h-3 text-pink-500" />
-                    <span>{selectedSpot.tag}</span>
+                    <span>{currentMedia?.shortLabel || selectedSpot.tag}</span>
                   </div>
                 </div>
+
+                {/* Mini Thumbnail Strip for Spot Media */}
+                {spotMedia.length > 1 && (
+                  <div className="flex items-center gap-1.5 mb-3 overflow-x-auto pb-0.5">
+                    {spotMedia.map((item, idx) => {
+                      const itemIsVideo = item.type === 'video';
+                      const isSelected = idx === activeMediaIndex;
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setActiveMediaIndex(idx)}
+                          className={`relative w-10 h-10 rounded-lg overflow-hidden border-2 shrink-0 transition-all cursor-pointer ${
+                            isSelected
+                              ? 'border-pink-500 scale-105 shadow-xs shadow-pink-500/30'
+                              : 'border-pink-200 opacity-70 hover:opacity-100'
+                          }`}
+                          title={item.label}
+                        >
+                          {itemIsVideo ? (
+                            <div className="w-full h-full bg-slate-900 flex items-center justify-center text-pink-400">
+                              <Film className="w-4 h-4" />
+                            </div>
+                          ) : (
+                            <img
+                              src={item.src}
+                              alt={item.shortLabel}
+                              className="w-full h-full object-cover"
+                            />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
 
                 <div className="flex items-center gap-2 text-xs text-pink-600 font-semibold mb-1">
                   <Calendar className="w-3.5 h-3.5" />
@@ -280,7 +342,7 @@ export default function DatingMapWidget({ onSelectMemory }) {
               <div className="mt-4 pt-3 border-t border-pink-200/80 flex items-center justify-between text-xs">
                 <span className="text-[11px] text-pink-600 font-bold flex items-center gap-1">
                   <MapPin className="w-3.5 h-3.5 text-pink-500" />
-                  <span>KOSAN Bar Thamine</span>
+                  <span>Just Vibe</span>
                 </span>
 
                 <button
@@ -288,8 +350,10 @@ export default function DatingMapWidget({ onSelectMemory }) {
                     id: selectedSpot.id,
                     title: selectedSpot.name,
                     date: selectedSpot.date,
-                    location: selectedSpot.name,
+                    location: selectedSpot.location,
                     imageUrl: selectedSpot.imageUrl,
+                    media: selectedSpot.media,
+                    initialMediaIndex: activeMediaIndex,
                     description: selectedSpot.story,
                     tag: selectedSpot.category,
                     likes: 88,

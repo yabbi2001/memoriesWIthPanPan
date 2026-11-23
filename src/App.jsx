@@ -6,21 +6,23 @@ import FirstPhoneCallWidget from './components/FirstPhoneCallWidget';
 import RecentAdventureCard from './components/RecentAdventureCard';
 import DatingMapWidget from './components/DatingMapWidget';
 import FirstDateMap from './components/FirstDateMap';
+import { FIRST_DATE_MEDIA } from './utils/firstDateMedia';
 import LightboxModal from './components/LightboxModal';
+import LoveEnvelopesModal from './components/LoveEnvelopesModal';
 import { Heart, Compass, Sparkles, MapPin } from 'lucide-react';
-import featuredChapterDateImg from '@/assets/date.jpeg';
 
 const INITIAL_MEMORIES = [
   {
     id: 1,
-    title: 'Our First Date at KOSAN Bar',
-    date: '1 Nov 2026 • 3:30 PM',
-    location: 'KOSAN Bar Thamine Branch',
+    title: 'Our First Date at Just Vibe',
+    date: '31 Oct 2026 • 3:30 PM',
+    location: 'Just Vibe',
     tag: 'First Date 💖',
     likes: 142,
-    imageUrl: featuredChapterDateImg,
-    description: 'Where our story officially began! Meeting at KOSAN Bar Thamine Branch on 1 Nov 2026 at 3:30 PM. Nervous laughter, sparkling eyes, and every sweet moment that started our journey together.',
-    quote: 'In your eyes, I found my favorite place in the whole universe.',
+    imageUrl: FIRST_DATE_MEDIA[0].src,
+    media: FIRST_DATE_MEDIA,
+    description: 'Where our story officially began! Meeting at Just Vibe on 31 Oct 2026 at 3:30 PM. Nervous laughter, tequila shots, sparkling eyes, and every sweet moment that started our journey together.',
+    quote: "do you know? you're always be my favorite person <33",
     partnerNote: 'Pan Pan & ZMH',
   },
   {
@@ -158,6 +160,7 @@ export default function App() {
   const [memories, setMemories] = useState(INITIAL_MEMORIES);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [activeLightboxMemory, setActiveLightboxMemory] = useState(null);
+  const [isEnvelopesOpen, setIsEnvelopesOpen] = useState(true);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -193,7 +196,10 @@ export default function App() {
       <div className="fixed top-1/2 right-1/3 w-80 h-80 bg-fuchsia-300/15 rounded-full blur-3xl pointer-events-none -z-10" />
 
       {/* Top Navigation Bar with Lofi Ambient Audio & Couple Status */}
-      <Navbar daysTogether={daysTogether} />
+      <Navbar
+        daysTogether={daysTogether}
+        onOpenEnvelopes={() => setIsEnvelopesOpen(true)}
+      />
 
       {/* Main Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
@@ -304,7 +310,7 @@ export default function App() {
                   Our First Date Location <Heart className="w-3.5 h-3.5 text-pink-500 fill-pink-500" />
                 </h3>
                 <p className="text-xs text-pink-700/70 font-medium">
-                  Where our story began • 1 Nov 2026, 3:30 PM • KOSAN Bar Thamine Branch
+                  Where our story began • 31 Oct 2026, 3:30 PM • Just Vibe
                 </p>
               </div>
             </div>
@@ -344,6 +350,12 @@ export default function App() {
           onLike={handleLikeMemory}
         />
       )}
+
+      {/* 15 Daily Love Envelopes Popup (Nov 23 – Dec 7) */}
+      <LoveEnvelopesModal
+        isOpen={isEnvelopesOpen}
+        onClose={() => setIsEnvelopesOpen(false)}
+      />
 
     </div>
   );
